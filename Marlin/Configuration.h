@@ -40,8 +40,6 @@
 
 #define ANYCUBIC_TOUCHSCREEN
 #define ANYCUBIC_FILAMENT_RUNOUT_SENSOR
-#define KNUTWURST_SPECIAL_MENU
-#define KNUTWURST_SPECIAL_MENU_WO_SD
 //#define ANYCUBIC_TFT_DEBUG
 //#define POWER_OUTAGE_TEST
 
@@ -78,7 +76,7 @@
  * 
  */
 //#define KNUTWURST_MEGA
-//#define KNUTWURST_MEGA_S
+#define KNUTWURST_MEGA_S
 //#define KNUTWURST_MEGA_X
 //#define KNUTWURST_MEGA_P
 
@@ -138,6 +136,13 @@
  * 
  */
 //#define KNUTWURST_BLTOUCH
+
+/*
+* This enables the Precision Piezo Support.
+* It also removes all manual leveling features
+* because they are not neccessary at all.
+*/
+#define KNUTWURST_PIEZO
 
 /*
  * This feature is for debugging purpose only.
@@ -286,11 +291,11 @@
  * on the upper left of the PCB silkscreen.
  */
 #ifndef MOTHERBOARD
-  //#define MOTHERBOARD BOARD_TRIGORILLA_14  // Is normally set by PlatformIO
+  #define MOTHERBOARD BOARD_TRIGORILLA_14  // Is normally set by PlatformIO
 #endif
 
 // Name displayed in the LCD "Ready" message and Info menu
-//#define CUSTOM_MACHINE_NAME "3D Printer"
+#define CUSTOM_MACHINE_NAME "i3 Mega Serpent"
 
 // Printer's unique ID, used by some programs to differentiate between machines.
 // Choose your own or use a service like http://www.uuidgenerator.net/version4
@@ -642,9 +647,14 @@
   // If you are using a pre-configured hotend then you can use one of the value sets by uncommenting it
 
   // i3 Mega stock v5 hotend, 40W heater cartridge (3.6Ω @ 22°C)
-  #define  DEFAULT_Kp 15.94
-  #define  DEFAULT_Ki 1.17
-  #define  DEFAULT_Kd 54.19
+  //#define  DEFAULT_Kp 15.94
+  //#define  DEFAULT_Ki 1.17
+  //#define  DEFAULT_Kd 54.19
+
+  // i3 Mega V6 Hotend, 40W cartridge
+  #define DEFAULT_Kp 26.28
+  #define DEFAULT_Ki 2.59
+  #define DEFAULT_Kd 66.73
 
   // Ultimaker
   // #define DEFAULT_Kp 22.2
@@ -697,9 +707,9 @@
   //#define PID_BED_DEBUG // Sends debug data to the serial port.
 
   //Anycubic i3 Mega Ultrabase (0.9Ω @ 22°C)
-  #define DEFAULT_bedKp 251.78
-  #define DEFAULT_bedKi 49.57
-  #define DEFAULT_bedKd 319.73
+  #define DEFAULT_bedKp 62.83
+  #define DEFAULT_bedKi 11.80
+  #define DEFAULT_bedKd 223.04
 
   //120V 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
   //from pidautotune
@@ -794,7 +804,7 @@
   //#define ENDSTOPPULLUP_XMIN
   //#define ENDSTOPPULLUP_YMIN
   //#define ENDSTOPPULLUP_ZMIN
-  //#define ENDSTOPPULLUP_ZMIN_PROBE
+  #define ENDSTOPPULLUP_ZMIN_PROBE
 #endif
 
 // Enable pulldown for all endstops to prevent a floating state
@@ -810,7 +820,7 @@
   //#define ENDSTOPPULLDOWN_ZMIN_PROBE
 #endif
 
-#if ANY(KNUTWURST_MEGA, KNUTWURST_MEGA_S, KNUTWURST_MEGA_P)
+#if ENABLED(KNUTWURST_MEGA) || ENABLED(KNUTWURST_MEGA_S) || ENABLED(KNUTWURST_MEGA_P)
     // Mechanical endstop with COM to ground and NC to Signal uses "false" here (most common setup).
     #define X_MIN_ENDSTOP_INVERTING true // set to true to invert the logic of the endstop.
     #define Y_MIN_ENDSTOP_INVERTING true // set to true to invert the logic of the endstop.
@@ -818,7 +828,9 @@
     #define X_MAX_ENDSTOP_INVERTING true // set to true to invert the logic of the endstop.
     #define Y_MAX_ENDSTOP_INVERTING true // set to true to invert the logic of the endstop.
     #define Z_MAX_ENDSTOP_INVERTING false // set to true to invert the logic of the endstop.
-    //#define Z_MIN_PROBE_ENDSTOP_INVERTING true // set to true to invert the logic of the endstop.
+            #if ENABLED(KNUTWURST_PIEZO)
+                #define Z_MIN_PROBE_ENDSTOP_INVERTING true // set to true to invert the logic of the endstop.
+            #endif
 #endif
 
 #if ENABLED(KNUTWURST_MEGA_X)
@@ -829,7 +841,9 @@
     #define X_MAX_ENDSTOP_INVERTING true // set to true to invert the logic of the endstop.
     #define Y_MAX_ENDSTOP_INVERTING true // set to true to invert the logic of the endstop.
     #define Z_MAX_ENDSTOP_INVERTING true // set to true to invert the logic of the endstop.
-    //#define Z_MIN_PROBE_ENDSTOP_INVERTING true // set to true to invert the logic of the endstop.
+            #if ENABLED(KNUTWURST_PIEZO)
+                #define Z_MIN_PROBE_ENDSTOP_INVERTING true // set to true to invert the logic of the endstop.
+            #endif
 #endif
 
 
@@ -935,7 +949,7 @@
 #endif
 
 #if ENABLED(KNUTWURST_MEGA_S)
-    #define DEFAULT_AXIS_STEPS_PER_UNIT   { 80, 80, 400, 392 }
+    #define DEFAULT_AXIS_STEPS_PER_UNIT   { 80, 80, 400, 86 }
 #endif
 
 #if ENABLED(KNUTWURST_MEGA_X)
@@ -954,23 +968,22 @@
  */
 #if ENABLED(KNUTWURST_MEGA)
     #if ENABLED(KNUTWURST_BMG)
-        #define DEFAULT_MAX_FEEDRATE          { 500, 500, 6, 30 }
+        #define DEFAULT_MAX_FEEDRATE          { 500, 500, 8, 30 }
     #else
-        #define DEFAULT_MAX_FEEDRATE          { 500, 500, 6, 60 }
+        #define DEFAULT_MAX_FEEDRATE          { 500, 500, 8, 60 }
     #endif 
 #endif
 
 #if ENABLED(KNUTWURST_MEGA_S)
-    #define DEFAULT_MAX_FEEDRATE          { 500, 500, 6, 30 }
+    #define DEFAULT_MAX_FEEDRATE          { 500, 500, 8, 30 }
 #endif
 
 #if ENABLED(KNUTWURST_MEGA_X)
-    //#define DEFAULT_MAX_FEEDRATE            { 120, 120, 18, 80 } // thanks to Simon Geis
-    #define DEFAULT_MAX_FEEDRATE            { 400, 400, 18, 80 } // thanks to DanJunior78 
+    #define DEFAULT_MAX_FEEDRATE            { 120, 120, 18, 80 } // thanks to Simon Geis
 #endif
 
 #if ENABLED(KNUTWURST_MEGA_P)
-    #define DEFAULT_MAX_FEEDRATE          { 500, 500, 6, 30 }
+    #define DEFAULT_MAX_FEEDRATE          { 500, 500, 8, 30 }
 #endif
 
 
@@ -985,13 +998,12 @@
  * Override with M201
  *                                      X, Y, Z, E0 [, E1[, E2...]]
  */
-#if ANY(KNUTWURST_MEGA, KNUTWURST_MEGA_S, KNUTWURST_MEGA_P)
+#if ENABLED(KNUTWURST_MEGA) || ENABLED(KNUTWURST_MEGA_S) || ENABLED(KNUTWURST_MEGA_P)
     #define DEFAULT_MAX_ACCELERATION      { 3000, 2000,  60, 10000 }
 #endif
 
 #if ENABLED(KNUTWURST_MEGA_X)
-    //#define DEFAULT_MAX_ACCELERATION      { 400, 400, 60, 10000 } //Original Values
-    #define DEFAULT_MAX_ACCELERATION      { 2000, 1500, 60, 10000 } 
+    #define DEFAULT_MAX_ACCELERATION      { 400, 400, 60, 10000 }
 #endif
 
 
@@ -1048,18 +1060,20 @@
  * When changing speed and direction, if the difference is less than the
  * value set here, it may happen instantaneously.
  */
+//#define CLASSIC_JERK
 
-#if ANY(KNUTWURST_MEGA, KNUTWURST_MEGA_S, KNUTWURST_MEGA_P)
-    #define CLASSIC_JERK
+// I Know.. it's useless to put it here ;)
+#if ENABLED(KNUTWURST_MEGA) || ENABLED(KNUTWURST_MEGA_S) || ENABLED(KNUTWURST_MEGA_P)
+    //#define CLASSIC_JERK
 #endif
 
 #if ENABLED(KNUTWURST_MEGA_X)
-    #define CLASSIC_JERK
+    //#define CLASSIC_JERK
 #endif
 
 #if ENABLED(CLASSIC_JERK)
 
-#if ANY(KNUTWURST_MEGA, KNUTWURST_MEGA_S, KNUTWURST_MEGA_P)
+#if ENABLED(KNUTWURST_MEGA) || ENABLED(KNUTWURST_MEGA_S) || ENABLED(KNUTWURST_MEGA_P)
     #define DEFAULT_XJERK  10.0
     #define DEFAULT_YJERK  10.0
     #define DEFAULT_ZJERK  0.4
@@ -1081,7 +1095,7 @@
   #endif
 #endif
 
-#if ANY(KNUTWURST_MEGA, KNUTWURST_MEGA_S, KNUTWURST_MEGA_P)
+#if ENABLED(KNUTWURST_MEGA) || ENABLED(KNUTWURST_MEGA_S) || ENABLED(KNUTWURST_MEGA_P)
     #define DEFAULT_EJERK    5.0  // May be used by Linear Advance
 #endif
 
@@ -1097,7 +1111,7 @@
  *   http://blog.kyneticcnc.com/2018/10/computing-junction-deviation-for-marlin.html
  */
 #if DISABLED(CLASSIC_JERK)
-    #if ANY(KNUTWURST_MEGA, KNUTWURST_MEGA_S, KNUTWURST_MEGA_P)
+    #if ENABLED(KNUTWURST_MEGA) || ENABLED(KNUTWURST_MEGA_S) || ENABLED(KNUTWURST_MEGA_P)
         #define JUNCTION_DEVIATION_MM 0.013 // (mm) Distance from real junction edge
     #endif
 
@@ -1132,6 +1146,33 @@
  */
 //#define Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN
 
+
+/**
+ * Z_MIN_PROBE_PIN
+ *
+ * Define this pin if the probe is not connected to Z_MIN_PIN.
+ * If not defined the default pin for the selected MOTHERBOARD
+ * will be used. Most of the time the default is what you want.
+ *
+ *  - The simplest option is to use a free endstop connector.
+ *  - Use 5V for powered (usually inductive) sensors.
+ *
+ *  - RAMPS 1.3/1.4 boards may use the 5V, GND, and Aux4->D32 pin:
+ *    - For simple switches connect...
+ *      - normally-closed switches to GND and D32.
+ *      - normally-open switches to 5V and D32.
+ *
+ */
+#if ENABLED(KNUTWURST_PIEZO)
+    #if ENABLED(BOARD_TRIGORILLA_14)
+    #define Z_MIN_PROBE_PIN 11 // Pin 32 is the RAMPS default
+    #endif
+
+    #if ENABLED(BOARD_TRIGORILLA_14_11)
+    #define Z_MIN_PROBE_PIN 5
+    #endif
+#endif
+
 /**
  * Z_MIN_PROBE_PIN
  *
@@ -1164,8 +1205,8 @@
  * Use G29 repeatedly, adjusting the Z height at each point with movement commands
  * or (with LCD_BED_LEVELING) the LCD controller.
  */
-#if DISABLED(KNUTWURST_BLTOUCH)
-#define PROBE_MANUALLY
+#if DISABLED(KNUTWURST_BLTOUCH) && DISABLED(KNUTWURST_PIEZO)
+    #define PROBE_MANUALLY
 #endif
 
 //#define MANUAL_PROBE_START_Z 0.2
@@ -1180,7 +1221,9 @@
  * Use the nozzle as the probe, as with a conductive
  * nozzle system or a piezo-electric smart effector.
  */
-//#define NOZZLE_AS_PROBE
+#if ENABLED(KNUTWURST_PIEZO)
+    #define NOZZLE_AS_PROBE
+#endif
 
 /**
  * Z Servo Probe, such as an endstop switch on a rotating arm.
@@ -1270,13 +1313,16 @@
     //#define NOZZLE_TO_PROBE_OFFSET { 29, -15, 0 } //X-Carriage
 #endif
 
-#if DISABLED(KNUTWURST_BLTOUCH)
-    #define NOZZLE_TO_PROBE_OFFSET { 10, 10, 0 }
+#if ENABLED(KNUTWURST_PIEZO)
+    #define NOZZLE_TO_PROBE_OFFSET { 0, 0, 0 }
+	  #define MIN_PROBE_EDGE 10
 #endif
 
 // Most probes should stay away from the edges of the bed, but
 // with NOZZLE_AS_PROBE this can be negative for a wider probing area.
-#define MIN_PROBE_EDGE 30
+#if DISABLED(KNUTWURST_BLTOUCH) && DISABLED(KNUTWURST_PIEZO)
+    #define MIN_PROBE_EDGE 30
+#endif
 
 // X and Y axis travel speed (mm/m) between probes
 #define XY_PROBE_SPEED 8000
@@ -1285,7 +1331,14 @@
 #define Z_PROBE_SPEED_FAST HOMING_FEEDRATE_Z
 
 // Feedrate (mm/m) for the "accurate" probe of each point
+#if DISABLED(KNUTWURST_PIEZO)
 #define Z_PROBE_SPEED_SLOW (Z_PROBE_SPEED_FAST / 2)
+#endif
+
+// Experimental homing speed to trigger the Piezo sensor correctly
+#if ENABLED(KNUTWURST_PIEZO)
+#define Z_PROBE_SPEED_SLOW (Z_PROBE_SPEED_FAST)
+#endif
 
 /**
  * Multiple Probing
@@ -1296,8 +1349,8 @@
  * A total of 2 does fast/slow probes with a weighted average.
  * A total of 3 or more adds more slow probes, taking the average.
  */
-//#define MULTIPLE_PROBING 2
-//#define EXTRA_PROBING    1
+#define MULTIPLE_PROBING 3
+#define EXTRA_PROBING    1
 
 /**
  * Z probes require clearance when deploying, stowing, and moving between
@@ -1332,7 +1385,7 @@
 #define Z_PROBE_OFFSET_RANGE_MAX 20
 
 // Enable the M48 repeatability test to test probe accuracy
-#if ENABLED(KNUTWURST_BLTOUCH)
+#if ENABLED(KNUTWURST_BLTOUCH) || ENABLED(KNUTWURST_PIEZO)
     #define Z_MIN_PROBE_REPEATABILITY_TEST
 #endif
 
@@ -1355,7 +1408,7 @@
 #endif
 //#define PROBING_FANS_OFF          // Turn fans off when probing
 //#define PROBING_STEPPERS_OFF      // Turn steppers off (unless needed to hold position) when probing
-//#define DELAY_BEFORE_PROBING 200  // (ms) To prevent vibrations from triggering piezo sensors
+#define DELAY_BEFORE_PROBING 200  // (ms) To prevent vibrations from triggering piezo sensors
 
 // For Inverting Stepper Enable Pins (Active Low) use 0, Non Inverting (Active High) use 1
 // :{ 0:'Low', 1:'High' }
@@ -1382,7 +1435,7 @@
 
 #if DISABLED(KNUTWURST_TMC)
 
-    #if ANY(KNUTWURST_MEGA, KNUTWURST_MEGA_S, KNUTWURST_MEGA_X)
+    #if ENABLED(KNUTWURST_MEGA) || ENABLED(KNUTWURST_MEGA_S) || ENABLED(KNUTWURST_MEGA_X)
         // Invert the stepper direction. Change (or reverse the motor connector) if an axis goes the wrong way.
         #define INVERT_X_DIR true // set to true for stock drivers or TMC2208 with reversed connectors
         #define INVERT_Y_DIR false // set to false for stock drivers or TMC2208 with reversed connectors
@@ -1430,7 +1483,7 @@
 #endif
 
 #if ENABLED(KNUTWURST_TMC)
-    #if ANY(KNUTWURST_MEGA, KNUTWURST_MEGA_S, KNUTWURST_MEGA_X)
+    #if ENABLED(KNUTWURST_MEGA) || ENABLED(KNUTWURST_MEGA_S) || ENABLED(KNUTWURST_MEGA_X)
         // Invert the stepper direction. Change (or reverse the motor connector) if an axis goes the wrong way.
         #define INVERT_X_DIR false // set to true for stock drivers or TMC2208 with reversed connectors
         #define INVERT_Y_DIR true // set to false for stock drivers or TMC2208 with reversed connectors
@@ -1485,7 +1538,7 @@
 //#define Z_HOMING_HEIGHT  4      // (mm) Minimal Z height before homing (G28) for Z clearance above the bed, clamps, ...
                                   // Be sure to have this much clearance over your Z_MAX_POS to prevent grinding.
 
-//#define Z_AFTER_HOMING  10      // (mm) Height to move to after homing Z
+#define Z_AFTER_HOMING  10      // (mm) Height to move to after homing Z
 
 // Direction of endstops when homing; 1=MAX, -1=MIN
 // :[-1,1]
@@ -1496,15 +1549,7 @@
 // @section machine
 
 // The size of the print bed
-/*
-#if ENABLED(KNUTWURST_MEGA)
-    #define X_BED_SIZE 215
-    #define Y_BED_SIZE 215
-    #define Z_BED_HEIGHT 206
-#endif
-*/
-
-#if ANY(KNUTWURST_MEGA, KNUTWURST_MEGA_S, KNUTWURST_MEGA_P)
+#if ENABLED(KNUTWURST_MEGA) || ENABLED(KNUTWURST_MEGA_S) || ENABLED(KNUTWURST_MEGA_P)
     #define X_BED_SIZE 225
     #define Y_BED_SIZE 220
     #define Z_BED_HEIGHT 210
@@ -1631,7 +1676,15 @@
     //#define MESH_BED_LEVELING
 #endif
 
-#if DISABLED(KNUTWURST_BLTOUCH)
+#if ENABLED(KNUTWURST_PIEZO)
+    //#define AUTO_BED_LEVELING_3POINT
+    //#define AUTO_BED_LEVELING_LINEAR
+    #define AUTO_BED_LEVELING_BILINEAR
+    //#define AUTO_BED_LEVELING_UBL
+    //#define MESH_BED_LEVELING
+#endif
+
+#if DISABLED(KNUTWURST_BLTOUCH) && DISABLED(KNUTWURST_PIEZO)
     //#define AUTO_BED_LEVELING_3POINT
     //#define AUTO_BED_LEVELING_LINEAR
     //#define AUTO_BED_LEVELING_BILINEAR
@@ -1789,17 +1842,17 @@
 // - Move the Z probe (or nozzle) to a defined XY point before Z Homing when homing all axes (G28).
 // - Prevent Z homing when the Z probe is outside bed area.
 //
-//#define Z_SAFE_HOMING
+#define Z_SAFE_HOMING
 
 #if ENABLED(Z_SAFE_HOMING)
   #define Z_SAFE_HOMING_X_POINT ((X_BED_SIZE) / 2)    // X point for Z homing when homing all axes (G28).
   #define Z_SAFE_HOMING_Y_POINT ((Y_BED_SIZE) / 2)    // Y point for Z homing when homing all axes (G28).
 #endif
 
-#if ANY(KNUTWURST_MEGA, KNUTWURST_MEGA_S, KNUTWURST_MEGA_P)
+#if ENABLED(KNUTWURST_MEGA) || ENABLED(KNUTWURST_MEGA_S) || ENABLED(KNUTWURST_MEGA_P)
     // Homing speeds (mm/m)
     #define HOMING_FEEDRATE_XY (50*60)
-    #define HOMING_FEEDRATE_Z  (4*60)
+    #define HOMING_FEEDRATE_Z  (5*60)
 #endif
 
 #if ENABLED(KNUTWURST_MEGA_X)
@@ -1916,7 +1969,7 @@
 
 // Preheat Constants
 #define PREHEAT_1_LABEL       "PLA"
-#define PREHEAT_1_TEMP_HOTEND 180
+#define PREHEAT_1_TEMP_HOTEND 200
 #define PREHEAT_1_TEMP_BED     70
 #define PREHEAT_1_FAN_SPEED     0 // Value from 0 to 255
 
@@ -2197,7 +2250,7 @@
 //
 // Short 2KHz beep when endstops are hit
 //
-//#define ENDSTOP_BEEP
+#define ENDSTOP_BEEP
 
 //
 // The duration and frequency for the UI feedback sound.
