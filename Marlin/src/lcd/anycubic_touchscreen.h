@@ -2,6 +2,7 @@
  AnycubicTouchscreen.h  --- Support for Anycubic i3 Mega TFT
  Created by Christian Hopp on 2017-12-09
  Modified by Oliver Köster on 2020-06-02
+ Modified by Roland Piewitt on 2020-10-17
 
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -81,6 +82,8 @@ char *ftostr32(const float &);
 #define SM_Z_DN_001_S         "<ZDN001>"
 #define SM_BLTOUCH_L          "<BLTouch Leveling>"
 #define SM_BLTOUCH_S          "<BLTCH>"
+#define SM_PIEZO_L            "<Piezo Leveling>"
+#define SM_PIEZO_S            "<PIEZO>"
 #define SM_PAUSE_L            "<Fil. Change Pause>"
 #define SM_PAUSE_S            "<PAUSE>"
 #define SM_RESUME_L           "<Fil. Change Resume>"
@@ -105,20 +108,6 @@ char *ftostr32(const float &);
 #define SM_FLOW_DN_S          "<DOWN>"
 #define SM_FLOW_EXIT_L        "<End Flow Settings>"
 #define SM_FLOW_EXIT_S        "<EXTFLW>"
-
-#define SM_EZLVL_MENU_L       "<Easy 4 Point Level>"
-#define SM_EZLVL_MENU_S       "<EZLVLM>"
-#define SM_EZLVL_P1_L         "<Point A>"
-#define SM_EZLVL_P1_S         "<EZLPA>"
-#define SM_EZLVL_P2_L         "<Point B>"
-#define SM_EZLVL_P2_S         "<EZLPB>"
-#define SM_EZLVL_P3_L         "<Point C>"
-#define SM_EZLVL_P3_S         "<EZLPC>"
-#define SM_EZLVL_P4_L         "<Point D>"
-#define SM_EZLVL_P4_S         "<EZLPD>"
-#define SM_EZLVL_EXIT_L       "<End Easy Leveling>"
-#define SM_EZLVL_EXIT_S       "<EZLEXT>"
-
 #endif
 
 #if ENABLED(KNUTWURST_DGUS2_TFT)
@@ -180,19 +169,6 @@ char *ftostr32(const float &);
 #define SM_FLOW_DN_S          "<DWNFLOW.GCO"
 #define SM_FLOW_EXIT_L        "<End Flow Settings> .gcode"
 #define SM_FLOW_EXIT_S        "<EXTFLW1.GCO"
-
-#define SM_EZLVL_MENU_L       "<Easy 4 Point Level>.gcode"
-#define SM_EZLVL_MENU_S       "<EZLVLM1.GCO"
-#define SM_EZLVL_P1_L         "<Point A>           .gcode"
-#define SM_EZLVL_P1_S         "<EZLPA01.GCO"
-#define SM_EZLVL_P2_L         "<Point B>           .gcode"
-#define SM_EZLVL_P2_S         "<EZLPB01.GCO"
-#define SM_EZLVL_P3_L         "<Point C>           .gcode"
-#define SM_EZLVL_P3_S         "<EZLPC01.GCO"
-#define SM_EZLVL_P4_L         "<Point D>           .gcode"
-#define SM_EZLVL_P4_S         "<EZLPD01.GCO"
-#define SM_EZLVL_EXIT_L       "<End Easy Leveling> .gcode"
-#define SM_EZLVL_EXIT_S       "<EZLEXT1.GCO"
 #endif
 
 
@@ -271,14 +247,12 @@ private:
 
   char currentTouchscreenSelection[64];
   char currentFileOrDirectory[64];
-  String flowRateBuffer;
   uint16_t MyFileNrCnt = 0;
   uint8_t FilamentSensorEnabled = true;
 
   uint8_t SpecialMenu = false;
   uint8_t MMLMenu = false;
-  uint8_t FlowMenu = false;
-  uint8_t LevelMenu = false;  
+  uint8_t FlowMenu = false;  
 
 #if ENABLED(ANYCUBIC_FILAMENT_RUNOUT_SENSOR)
   char FilamentTestStatus = false;
