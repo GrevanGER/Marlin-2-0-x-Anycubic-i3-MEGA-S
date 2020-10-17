@@ -2,6 +2,7 @@
    AnycubicTouchscreen.cpp  --- Support for Anycubic i3 Mega TFT
    Created by Christian Hopp on 2017-12-09
    Modified by Oliver Köster on 2020-06-02
+   Modified by Roland Piewitt on 2020-10-17
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -140,11 +141,9 @@ void AnycubicTouchscreenClass::Setup()
   SpecialMenu = false;
   MMLMenu = false;
   FlowMenu = false;
-  LevelMenu = false;
   FilamentSensorEnabled = true;
   MyFileNrCnt = 0;
   currentFlowRate = 100;
-  flowRateBuffer = SM_FLOW_DISP_L;
 
 #ifdef STARTUP_CHIME
   buzzer.tone(100, 554);
@@ -440,7 +439,6 @@ bool AnycubicTouchscreenClass::CodeSeen(char code)
 
 void AnycubicTouchscreenClass::HandleSpecialMenu()
 {
-#if ENABLED(KNUTWURST_SPECIAL_MENU)
 #ifdef ANYCUBIC_TFT_DEBUG
     SERIAL_ECHOPAIR(" DEBUG: Special Menu Selection: ", currentTouchscreenSelection);
     SERIAL_EOL();
@@ -493,7 +491,7 @@ void AnycubicTouchscreenClass::HandleSpecialMenu()
     queue.inject_P(PSTR("M140 S60"));
   }
 
-#if DISABLED(KNUTWURST_BLTOUCH)
+#if DISABLED(KNUTWURST_BLTOUCH) && DISABLED(KNUTWURST_PIEZO)
   else if ((strcasestr(currentTouchscreenSelection, SM_MESH_MENU_L) != NULL)
   || (strcasestr(currentTouchscreenSelection, SM_MESH_MENU_S) != NULL))
   {
@@ -557,6 +555,17 @@ void AnycubicTouchscreenClass::HandleSpecialMenu()
     queue.inject_P(PSTR("G28\nG29\nM500\nG90\nG1 Z30 F4000\nG1 X0 F4000\nG91\nM84"));
     buzzer.tone(105, 1108);
     buzzer.tone(210, 1661);
+  }
+#endif
+
+#if ENABLED(KNUTWURST_PIEZO)
+  else if ((strcasestr(currentTouchscreenSelection, SM_PIEZO_L) != NULL)
+  || (strcasestr(currentTouchscreenSelection, SM_PIEZO_S) != NULL))
+  {
+  SERIAL_ECHOLNPGM("Special Menu: Piezo Leveling");
+  queue.inject_P(PSTR("G28\nG29\nM500\nG90\nG1 Z30 F4000\nG1 X0 F4000\nG91\nM84"));
+  buzzer.tone(105, 1108);
+  buzzer.tone(210, 1661);
   }
 #endif
 
@@ -638,69 +647,11 @@ void AnycubicTouchscreenClass::HandleSpecialMenu()
     SERIAL_ECHOLNPGM("Special Menu: Exit Flow Menu");
     FlowMenu = false;
   }
-  else if ((strcasestr(currentTouchscreenSelection, SM_EZLVL_MENU_L) != NULL)
-  || (strcasestr(currentTouchscreenSelection, SM_EZLVL_MENU_S) != NULL))
-  {
-    SERIAL_ECHOLNPGM("Special Menu: Enter Easy Level Menu");
-    LevelMenu = true;
-    queue.inject_P(PSTR("G28\nG90\nG1 Z5\nG1 X15 Y15 F4000\nG1 Z0"));
-  }
-  else if ((strcasestr(currentTouchscreenSelection, SM_EZLVL_P1_L) != NULL)
-  || (strcasestr(currentTouchscreenSelection, SM_EZLVL_P1_S) != NULL))
-  {
-    SERIAL_ECHOLNPGM("Special Menu: Easy Level POINT 1");
-    queue.inject_P(PSTR("G90\nG1 Z5\nG1 X15 Y15 F4000\nG1 Z0"));
-  }
-  else if ((strcasestr(currentTouchscreenSelection, SM_EZLVL_P2_L) != NULL)
-  || (strcasestr(currentTouchscreenSelection, SM_EZLVL_P2_S) != NULL))
-  {
-    SERIAL_ECHOLNPGM("Special Menu: Easy Level POINT 2");
-    #if ANY(KNUTWURST_MEGA, KNUTWURST_MEGA_S, KNUTWURST_MEGA_P)
-        queue.inject_P(PSTR("G90\nG1 Z5\nG1 X205 Y15 F4000\nG1 Z0"));
-    #endif
-
-    #if ENABLED(KNUTWURST_MEGA_X)
-        queue.inject_P(PSTR("G90\nG1 Z5\nG1 X295 Y15 F4000\nG1 Z0"));
-    #endif
-  }
-  else if ((strcasestr(currentTouchscreenSelection, SM_EZLVL_P3_L) != NULL)
-  || (strcasestr(currentTouchscreenSelection, SM_EZLVL_P3_S) != NULL))
-  {
-    SERIAL_ECHOLNPGM("Special Menu: Easy Level POINT 3");
-    #if ANY(KNUTWURST_MEGA, KNUTWURST_MEGA_S, KNUTWURST_MEGA_P)
-        queue.inject_P(PSTR("G90\nG1 Z5\nG1 X205 Y200 F4000\nG1 Z0"));
-    #endif
-
-    #if ENABLED(KNUTWURST_MEGA_X)
-        queue.inject_P(PSTR("G90\nG1 Z5\nG1 X295 Y295 F4000\nG1 Z0"));
-    #endif
-  }
-  else if ((strcasestr(currentTouchscreenSelection, SM_EZLVL_P4_L) != NULL)
-  || (strcasestr(currentTouchscreenSelection, SM_EZLVL_P4_S) != NULL))
-  {
-    SERIAL_ECHOLNPGM("Special Menu: Easy Level POINT 4");
-    #if ANY(KNUTWURST_MEGA, KNUTWURST_MEGA_S, KNUTWURST_MEGA_P)
-        queue.inject_P(PSTR("G90\nG1 Z5\nG1 X15 Y200 F4000\nG1 Z0"));
-    #endif
-
-    #if ENABLED(KNUTWURST_MEGA_X)
-        queue.inject_P(PSTR("G90\nG1 Z5\nG1 X15 Y295 F4000\nG1 Z0"));
-    #endif
-  }
-  else if ((strcasestr(currentTouchscreenSelection, SM_EZLVL_EXIT_L) != NULL)
-  || (strcasestr(currentTouchscreenSelection, SM_EZLVL_EXIT_S) != NULL))
-  {
-    SERIAL_ECHOLNPGM("Special Menu: Exit Easy Level Menu");
-    LevelMenu = false;
-    queue.inject_P(PSTR("G90\nG1 Z10\nG1 X15 Y15 F4000"));
-  }
-#endif
 }
 
 
 void AnycubicTouchscreenClass::PrintList()
 {
-#if ENABLED(KNUTWURST_SPECIAL_MENU)
   if(MMLMenu)
   {
     switch (filenumber)
@@ -740,44 +691,20 @@ void AnycubicTouchscreenClass::PrintList()
   }
   else if(FlowMenu)
   {
-    flowRateBuffer = SM_FLOW_DISP_L;
-    flowRateBuffer.replace("XXX", String(currentFlowRate));
+    String blah = SM_FLOW_DISP_L;
+    blah.replace("XXX", String(currentFlowRate));
     
     switch (filenumber)
     {
         case 0: // Page 1
           HARDWARE_SERIAL_PROTOCOLLNPGM(SM_FLOW_DISP_S);
-          HARDWARE_SERIAL_PROTOCOLLN(flowRateBuffer);
+          HARDWARE_SERIAL_PROTOCOLLN(blah);
           HARDWARE_SERIAL_PROTOCOLLNPGM(SM_FLOW_UP_S);
           HARDWARE_SERIAL_PROTOCOLLNPGM(SM_FLOW_UP_L);
           HARDWARE_SERIAL_PROTOCOLLNPGM(SM_FLOW_DN_S);
           HARDWARE_SERIAL_PROTOCOLLNPGM(SM_FLOW_DN_L);
           HARDWARE_SERIAL_PROTOCOLLNPGM(SM_FLOW_EXIT_S);
           HARDWARE_SERIAL_PROTOCOLLNPGM(SM_FLOW_EXIT_L);
-        break;
-
-        default:
-        break;
-      }
-  }
-  else if(LevelMenu)
-  {
-    switch (filenumber)
-    {
-        case 0: // Page 1
-          HARDWARE_SERIAL_PROTOCOLLNPGM(SM_EZLVL_P1_S);
-          HARDWARE_SERIAL_PROTOCOLLNPGM(SM_EZLVL_P1_L);
-          HARDWARE_SERIAL_PROTOCOLLNPGM(SM_EZLVL_P2_S);
-          HARDWARE_SERIAL_PROTOCOLLNPGM(SM_EZLVL_P2_L);
-          HARDWARE_SERIAL_PROTOCOLLNPGM(SM_EZLVL_P3_S);
-          HARDWARE_SERIAL_PROTOCOLLNPGM(SM_EZLVL_P3_L);
-          HARDWARE_SERIAL_PROTOCOLLNPGM(SM_EZLVL_P4_S);
-          HARDWARE_SERIAL_PROTOCOLLNPGM(SM_EZLVL_P4_L);
-        break;
-
-        case 4: // Page 2
-          HARDWARE_SERIAL_PROTOCOLLNPGM(SM_EZLVL_EXIT_S);
-          HARDWARE_SERIAL_PROTOCOLLNPGM(SM_EZLVL_EXIT_L);
         break;
 
         default:
@@ -799,59 +726,83 @@ void AnycubicTouchscreenClass::PrintList()
       HARDWARE_SERIAL_PROTOCOLLNPGM(SM_RESUME_L);
       break;
 
-#if DISABLED(KNUTWURST_BLTOUCH)
+#if DISABLED(KNUTWURST_BLTOUCH) && DISABLED(KNUTWURST_PIEZO)
     case 4: // Page 2
-      HARDWARE_SERIAL_PROTOCOLLNPGM(SM_EZLVL_MENU_S);
-      HARDWARE_SERIAL_PROTOCOLLNPGM(SM_EZLVL_MENU_L);
       HARDWARE_SERIAL_PROTOCOLLNPGM(SM_MESH_MENU_S);
       HARDWARE_SERIAL_PROTOCOLLNPGM(SM_MESH_MENU_L);
       HARDWARE_SERIAL_PROTOCOLLNPGM(SM_PID_HOTEND_S);
       HARDWARE_SERIAL_PROTOCOLLNPGM(SM_PID_HOTEND_L);
       HARDWARE_SERIAL_PROTOCOLLNPGM(SM_PID_BED_S);
       HARDWARE_SERIAL_PROTOCOLLNPGM(SM_PID_BED_L);
+      HARDWARE_SERIAL_PROTOCOLLNPGM(SM_SAVE_EEPROM_S);
+      HARDWARE_SERIAL_PROTOCOLLNPGM(SM_SAVE_EEPROM_L);
+      break;
+
+    case 8: // Page 3
+      HARDWARE_SERIAL_PROTOCOLLNPGM(SM_LOAD_DEFAULTS_S);
+      HARDWARE_SERIAL_PROTOCOLLNPGM(SM_LOAD_DEFAULTS_L);
+      HARDWARE_SERIAL_PROTOCOLLNPGM(SM_DIS_FILSENS_S);
+      HARDWARE_SERIAL_PROTOCOLLNPGM(SM_DIS_FILSENS_L);
+      HARDWARE_SERIAL_PROTOCOLLNPGM(SM_EN_FILSENS_S);
+      HARDWARE_SERIAL_PROTOCOLLNPGM(SM_EN_FILSENS_L);
+      HARDWARE_SERIAL_PROTOCOLLNPGM(SM_EXIT_S);
+      HARDWARE_SERIAL_PROTOCOLLNPGM(SM_EXIT_L);
       break;
 #endif
 
 #if ENABLED(KNUTWURST_BLTOUCH)
     case 4: // Page 2
-      HARDWARE_SERIAL_PROTOCOLLNPGM(SM_EZLVL_MENU_S);
-      HARDWARE_SERIAL_PROTOCOLLNPGM(SM_EZLVL_MENU_L);
       HARDWARE_SERIAL_PROTOCOLLNPGM(SM_BLTOUCH_S);
       HARDWARE_SERIAL_PROTOCOLLNPGM(SM_BLTOUCH_L);
       HARDWARE_SERIAL_PROTOCOLLNPGM(SM_PID_HOTEND_S);
       HARDWARE_SERIAL_PROTOCOLLNPGM(SM_PID_HOTEND_L);
       HARDWARE_SERIAL_PROTOCOLLNPGM(SM_PID_BED_S);
       HARDWARE_SERIAL_PROTOCOLLNPGM(SM_PID_BED_L);
-      break;
-#endif
-
-    case 8: // Page 3
-      HARDWARE_SERIAL_PROTOCOLLNPGM(SM_LOAD_DEFAULTS_S);
-      HARDWARE_SERIAL_PROTOCOLLNPGM(SM_LOAD_DEFAULTS_L);
-      HARDWARE_SERIAL_PROTOCOLLNPGM(SM_SAVE_EEPROM_S);
-      HARDWARE_SERIAL_PROTOCOLLNPGM(SM_SAVE_EEPROM_L);
       HARDWARE_SERIAL_PROTOCOLLNPGM(SM_DIS_FILSENS_S);
       HARDWARE_SERIAL_PROTOCOLLNPGM(SM_DIS_FILSENS_L);
-      HARDWARE_SERIAL_PROTOCOLLNPGM(SM_EN_FILSENS_S);
-      HARDWARE_SERIAL_PROTOCOLLNPGM(SM_EN_FILSENS_L);
       break;
 
-    case 12: // Page 3
+    case 8: // Page 3
+      HARDWARE_SERIAL_PROTOCOLLNPGM(SM_EN_FILSENS_S);
+      HARDWARE_SERIAL_PROTOCOLLNPGM(SM_EN_FILSENS_L);
+      HARDWARE_SERIAL_PROTOCOLLNPGM(SM_SAVE_EEPROM_S);
+      HARDWARE_SERIAL_PROTOCOLLNPGM(SM_SAVE_EEPROM_L);
+      HARDWARE_SERIAL_PROTOCOLLNPGM(SM_LOAD_DEFAULTS_S);
+      HARDWARE_SERIAL_PROTOCOLLNPGM(SM_LOAD_DEFAULTS_L);
       HARDWARE_SERIAL_PROTOCOLLNPGM(SM_EXIT_S);
       HARDWARE_SERIAL_PROTOCOLLNPGM(SM_EXIT_L);
       break;
+#endif
 
+#if ENABLED(KNUTWURST_PIEZO)
+    case 4: // Page 2
+        HARDWARE_SERIAL_PROTOCOLLNPGM(SM_PIEZO_S);
+        HARDWARE_SERIAL_PROTOCOLLNPGM(SM_PIEZO_L);
+        HARDWARE_SERIAL_PROTOCOLLNPGM(SM_PID_HOTEND_S);
+        HARDWARE_SERIAL_PROTOCOLLNPGM(SM_PID_HOTEND_L);
+        HARDWARE_SERIAL_PROTOCOLLNPGM(SM_PID_BED_S);
+        HARDWARE_SERIAL_PROTOCOLLNPGM(SM_PID_BED_L);
+        HARDWARE_SERIAL_PROTOCOLLNPGM(SM_DIS_FILSENS_S);
+        HARDWARE_SERIAL_PROTOCOLLNPGM(SM_DIS_FILSENS_L);
+        break;
+
+    case 8: // Page 3
+        HARDWARE_SERIAL_PROTOCOLLNPGM(SM_EN_FILSENS_S);
+        HARDWARE_SERIAL_PROTOCOLLNPGM(SM_EN_FILSENS_L);
+        HARDWARE_SERIAL_PROTOCOLLNPGM(SM_SAVE_EEPROM_S);
+        HARDWARE_SERIAL_PROTOCOLLNPGM(SM_SAVE_EEPROM_L);
+        HARDWARE_SERIAL_PROTOCOLLNPGM(SM_LOAD_DEFAULTS_S);
+        HARDWARE_SERIAL_PROTOCOLLNPGM(SM_LOAD_DEFAULTS_L);
+        HARDWARE_SERIAL_PROTOCOLLNPGM(SM_EXIT_S);
+        HARDWARE_SERIAL_PROTOCOLLNPGM(SM_EXIT_L);
+        break;
+#endif
     default:
       break;
     }
   }
-  #endif
   #ifdef SDSUPPORT
-#if ENABLED(KNUTWURST_SPECIAL_MENU)
   else if (card.isMounted())
-#else
-  if (card.isMounted())
-#endif
   {
     uint16_t count = filenumber;
     uint16_t max_files;
@@ -967,10 +918,8 @@ void AnycubicTouchscreenClass::PrintList()
 #endif
   else
   {
-      #if ENABLED(KNUTWURST_SPECIAL_MENU_WO_SD)
-      HARDWARE_SERIAL_PROTOCOLLNPGM(SM_SPECIAL_MENU_S);
-      HARDWARE_SERIAL_PROTOCOLLNPGM(SM_SPECIAL_MENU_L);
-      #endif
+    HARDWARE_SERIAL_PROTOCOLLNPGM(SM_SPECIAL_MENU_S);
+    HARDWARE_SERIAL_PROTOCOLLNPGM(SM_SPECIAL_MENU_L);
   }
 }
 
@@ -1172,7 +1121,7 @@ void AnycubicTouchscreenClass::FilamentRunout()
         FilamentSetMillis = false;
       }
 
-      // if five seconds passed and the sensor is still triggered,
+      // if three seconds passed and the sensor is still triggered,
       // we trigger the filament runout status
       if ((FilamentTestStatus > FilamentTestLastStatus) && (ELAPSED(fil_ms, fil_delay)))
       {
@@ -1228,58 +1177,54 @@ void AnycubicTouchscreenClass::GetCommandFromTFT()
     serial3_char = HardwareSerial.read();   
     if(serial3_char == '\n' || serial3_char == '\r' || (serial3_char == ':' && TFTcomment_mode == false) || serial3_count >= (TFT_MAX_CMD_SIZE - 1) )
     {
-        if(!serial3_count)
-        { //if empty line
-            TFTcomment_mode = false; //for new command
-            return;
-        }
+        if(!serial3_count) { //if empty line
+        TFTcomment_mode = false; //for new command
+        return;
+    }
     
-        TFTcmdbuffer[TFTbufindw][serial3_count] = 0; //terminate string
+    TFTcmdbuffer[TFTbufindw][serial3_count] = 0; //terminate string
+    if(!TFTcomment_mode)
+    {
+        TFTcomment_mode = false; //for new command
 
-        if(!TFTcomment_mode)
+        if(strchr(TFTcmdbuffer[TFTbufindw], 'N') != NULL)
         {
-            // -------- START ERROR CORRECTION ----------
-            TFTcomment_mode = false; //for new command
-
-            if(strchr(TFTcmdbuffer[TFTbufindw], 'N') != NULL)
-            {
-              if(strchr(TFTcmdbuffer[TFTbufindw], '*') != NULL)
-              {
-                  byte checksum = 0;
-                  byte count = 0;
-                  while(TFTcmdbuffer[TFTbufindw][count] != '*') checksum = checksum^TFTcmdbuffer[TFTbufindw][count++];
-                  TFTstrchr_pointer = strchr(TFTcmdbuffer[TFTbufindw], '*');
-            
-                  if( (int)(strtod(&TFTcmdbuffer[TFTbufindw][TFTstrchr_pointer - TFTcmdbuffer[TFTbufindw] + 1], NULL)) != checksum)
-                  {
-                      HARDWARE_SERIAL_ERROR_START;
-                      HardwareSerial.flush();
-                      HARDWARE_SERIAL_ERROR_START;
-                      HardwareSerial.flush();
-                      serial3_count = 0;
-                      return;
-                  }
-                //if no errors, continue parsing
-              }
-              else
-              {
-                HARDWARE_SERIAL_ERROR_START;
-                HardwareSerial.flush();
-                serial3_count = 0;
-                return;
-              }
-          //if no errors, continue parsing
-          }
-          else  // if we don't receive 'N' but still see '*'
+          if(strchr(TFTcmdbuffer[TFTbufindw], '*') != NULL)
           {
-              if((strchr(TFTcmdbuffer[TFTbufindw], '*') != NULL))
+              byte checksum = 0;
+              byte count = 0;
+              while(TFTcmdbuffer[TFTbufindw][count] != '*') checksum = checksum^TFTcmdbuffer[TFTbufindw][count++];
+              TFTstrchr_pointer = strchr(TFTcmdbuffer[TFTbufindw], '*');
+        
+              if( (int)(strtod(&TFTcmdbuffer[TFTbufindw][TFTstrchr_pointer - TFTcmdbuffer[TFTbufindw] + 1], NULL)) != checksum)
               {
                   HARDWARE_SERIAL_ERROR_START;
+                  HardwareSerial.flush();
+                  HARDWARE_SERIAL_ERROR_START;
+                  HardwareSerial.flush();
                   serial3_count = 0;
                   return;
               }
+            //if no errors, continue parsing
           }
-          // -------- FINISH ERROR CORRECTION ----------
+          else
+          {
+            HARDWARE_SERIAL_ERROR_START;
+            HardwareSerial.flush();
+            serial3_count = 0;
+            return;
+          }
+       //if no errors, continue parsing
+       }
+       else  // if we don't receive 'N' but still see '*'
+       {
+          if((strchr(TFTcmdbuffer[TFTbufindw], '*') != NULL))
+          {
+              HARDWARE_SERIAL_ERROR_START;
+              serial3_count = 0;
+              return;
+          }
+       }
       
       
       if((strchr(TFTcmdbuffer[TFTbufindw], 'A') != NULL))
@@ -1382,27 +1327,17 @@ void AnycubicTouchscreenClass::GetCommandFromTFT()
         }
         case 8: // A8 GET SD LIST
 #ifdef SDSUPPORT
-          
           currentTouchscreenSelection[0] = 0;
-#if ENABLED(KNUTWURST_SPECIAL_MENU_WO_SD)
-          if (!IS_SD_INSERTED())
-          {
-            HARDWARE_SERIAL_PROTOCOLPGM("J02");
-            HARDWARE_SERIAL_ENTER();
-          }
-          else
-#endif
-          {
-            if (CodeSeen('S'))
-              filenumber = CodeValue();
-              
-            HARDWARE_SERIAL_PROTOCOLPGM("FN "); // Filelist start
-            HARDWARE_SERIAL_ENTER();
-            PrintList();
-            HARDWARE_SERIAL_PROTOCOLPGM("END"); // Filelist stop
-            HARDWARE_SERIAL_ENTER();
-          }
-    
+
+          if (CodeSeen('S'))
+            filenumber = CodeValue();
+            
+          HARDWARE_SERIAL_PROTOCOLPGM("FN "); // Filelist start
+          HARDWARE_SERIAL_ENTER();
+          PrintList();
+          HARDWARE_SERIAL_PROTOCOLPGM("END"); // Filelist stop
+          HARDWARE_SERIAL_ENTER();
+          
 #endif
           break;
         case 9: // A9 pause sd print
@@ -1447,7 +1382,7 @@ void AnycubicTouchscreenClass::GetCommandFromTFT()
           }
           else
           {
-            HARDWARE_SERIAL_PROTOCOLPGM("J16"); // J16 stop print
+            HARDWARE_SERIAL_PROTOCOLPGM("J16");
             HARDWARE_SERIAL_ENTER();
             TFTstate = ANYCUBIC_TFT_STATE_IDLE;
             ai3m_pause_state = 0;
@@ -1891,15 +1826,6 @@ void AnycubicTouchscreenClass::BedHeatingDone()
 #ifdef ANYCUBIC_TFT_DEBUG
   SERIAL_ECHOLNPGM("TFT Serial Debug: Bed heating is done... J09");
 #endif
-
-if (TFTstate == ANYCUBIC_TFT_STATE_SDPRINT)
-  {
-    HARDWARE_SERIAL_PROTOCOLPGM("J04"); // J04 printing from sd card
-    HARDWARE_SERIAL_ENTER();
-#ifdef ANYCUBIC_TFT_DEBUG
-    SERIAL_ECHOLNPGM("TFT Serial Debug: Continuing SD print after heating... J04");
-#endif
-  }
 }
 
 void PowerKill()
